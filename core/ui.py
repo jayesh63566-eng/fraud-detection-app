@@ -74,11 +74,17 @@ def plot(fig, key=None):
 
 
 def table(df, height=None, key=None):
-    kw = dict(hide_index=True) if isinstance(df, pd.DataFrame) else {}
+    kw = {}
+    if isinstance(df, pd.DataFrame):
+        kw["hide_index"] = True
+    if height is not None:      # newer Streamlit rejects height=None
+        kw["height"] = height
+    if key is not None:
+        kw["key"] = key
     try:
-        st.dataframe(df, width="stretch", height=height, key=key, **kw)
+        st.dataframe(df, width="stretch", **kw)
     except Exception:  # older Streamlit: width must be int
-        st.dataframe(df, use_container_width=True, height=height, **kw)
+        st.dataframe(df, use_container_width=True, **kw)
 
 
 def download_df(df: pd.DataFrame, filename: str, label="⬇️ CSV download karo"):
