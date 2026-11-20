@@ -67,24 +67,30 @@ def next_step(index: int, label: str | None = None):
 
 
 def plot(fig, key=None):
+    """Full-width plotly chart that works on old and new Streamlit versions."""
+    kw = {"key": key} if key is not None else {}
     try:
-        st.plotly_chart(fig, width="stretch", key=key)
-    except Exception:  # older Streamlit: width must be int
-        st.plotly_chart(fig, use_container_width=True, key=key)
+        st.plotly_chart(fig, use_container_width=True, **kw)
+    except Exception:
+        st.plotly_chart(fig, **kw)
 
 
 def table(df, height=None, key=None):
+    """DataFrame display. Never passes width/height unless needed (their accepted values changed across versions)."""
     kw = {}
     if isinstance(df, pd.DataFrame):
         kw["hide_index"] = True
-    if height is not None:      # newer Streamlit rejects height=None
+    if isinstance(height, int):
         kw["height"] = height
     if key is not None:
         kw["key"] = key
-    try:
-        st.dataframe(df, width="stretch", **kw)
-    except Exception:  # older Streamlit: width must be int
-        st.dataframe(df, use_container_width=True, **kw)
+    for extra in ({"use_container_width": True}, {}):
+        try:
+            st.dataframe(df, **extra, **kw)
+            return
+        except Exception:
+            continue
+    st.dataframe(df)
 
 
 def download_df(df: pd.DataFrame, filename: str, label="⬇️ CSV download karo"):
